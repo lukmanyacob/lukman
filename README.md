@@ -90,6 +90,25 @@ Kalau backup ada di tempat lain (contohnya hard disk luar), guna `--backup "E:\f
 **Mac:** kalau keluar mesej tiada backup walaupun ada, beri Terminal kebenaran
 **Full Disk Access** di System Settings → Privacy & Security → Full Disk Access.
 
+## Cari gambar di seluruh PC
+
+Kalau tool di atas cakap "Tiada backup iPhone dijumpai", guna `cari_gambar_pc.py`. Ia scan
+**semua drive** (termasuk hard disk luar yang dicucuk) untuk cari:
+
+1. **Backup iPhone** di tempat lain selain lokasi biasa iTunes
+2. **Gambar & video dalam Recycle Bin**, dengan nama asal dan tarikh dipadam
+3. **Semua folder yang ada gambar & video**, disusun dengan folder paling mungkin dari iPhone
+   (HEIC, MOV, `IMG_1234`) di atas, berserta julat tarikh
+
+```bash
+py cari_gambar_pc.py                      # scan semua drive (mungkin ambil beberapa minit)
+py cari_gambar_pc.py --folder D:\         # scan satu drive/folder sahaja
+py cari_gambar_pc.py --salin D:\Pulih     # salin gambar dari Recycle Bin ke D:\Pulih
+```
+
+Hasil penuh disimpan dalam `laporan_gambar.txt`. Tool ni hanya membaca. Tiada fail yang
+dipadam atau dialihkan, dan `--salin` hanya membuat salinan.
+
 ## Kenapa Camera Roll kosong?
 
 Kalau **iCloud Photos** dihidupkan masa backup dibuat, gambar disimpan dalam iCloud dan
