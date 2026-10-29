@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
 """
-Scan seluruh PC untuk cari:
+Scan seluruh PC untuk cari gambar, video dan dokumen lama:
   1. Backup iPhone di mana-mana drive (termasuk hard disk luar)
-  2. Folder yang mengandungi gambar & video (terutama dari iPhone: HEIC, MOV, IMG_1234)
-  3. Gambar & video dalam Recycle Bin, dengan nama asal
+  2. Gambar, video & dokumen dalam Recycle Bin, dengan nama asal
+  3. Jumlah fail mengikut tahun
+  4. Folder yang mengandungi fail-fail tersebut
+Setiap fail juga disenaraikan dalam senarai_fail.csv (boleh dibuka dengan Excel).
 
 Cara guna:
     py cari_gambar_pc.py                       # scan semua drive
+    py cari_gambar_pc.py --sebelum 2022        # fail yang bertarikh sebelum 2022 sahaja
+    py cari_gambar_pc.py --jenis gambar,video  # jenis tertentu sahaja
     py cari_gambar_pc.py --folder D:\\         # scan satu tempat sahaja
-    py cari_gambar_pc.py --salin D:\\Pulih     # salin gambar dari Recycle Bin ke folder ini
+    py cari_gambar_pc.py --salin D:\\Pulih     # salin fail dari Recycle Bin ke folder ini
 """
 
 import argparse
+import csv
 import datetime
 import os
 import re
@@ -21,14 +26,21 @@ import struct
 import sys
 from pathlib import Path
 
-from iphone_backup_extract import IMG, VID, describe
+from iphone_backup_extract import DOC, IMG, VID, describe
 
-MEDIA = IMG | VID
-MIN_SIZE = 30 * 1024  # abaikan ikon dan gambar kecil
-IPHONE_NAME = re.compile(r"^IMG_E?\d{4}", re.IGNORECASE)
+KINDS = {"gambar": IMG, "video": VID, "dokumen": DOC - {"txt", "csv", "zip"}}
+MIN_SIZE = {"gambar": 30 * 1024, "video": 1024, "dokumen": 1024}  # abaikan ikon dan gambar kecil
 SKIP_DIRS = {"windows", "program files", "program files (x86)", "programdata", "windowsapps",
              "system volume information", "$windows.~bt", "$windows.~ws", "$winreagent",
              "$recycle.bin", "recovery", "node_modules", ".git", "site-packages", "temp", "tmp"}
+
+
+def kind_of(name, wanted):
+    ext = os.path.splitext(name)[1].lower().lstrip(".")
+    for kind in wanted:
+        if ext in KINDS[kind]:
+            return kind
+    return None
 
 
 def drives():
@@ -49,8 +61,8 @@ def fmt_size(n):
     return f"{n:.1f} TB"
 
 
-def scan(roots):
-    backups, folders, seen = [], {}, 0
+def scan(roots, wanted, before, writer):
+    backups, folders, years, seen = [], {}, {}, 0
     for root in roots:
         print(f"Scan {root} ...")
         for dirpath, dirnames, filenames in os.walk(root, onerror=lambda e: None):
@@ -63,23 +75,28 @@ def scan(roots):
                 dirnames[:] = []  # isi backup bukan gambar biasa
                 continue
             for name in filenames:
-                if os.path.splitext(name)[1].lower().lstrip(".") not in MEDIA:
+                kind = kind_of(name, wanted)
+                if not kind:
                     continue
+                full = os.path.join(dirpath, name)
                 try:
-                    st = os.stat(os.path.join(dirpath, name))
-                except OSError:
+                    st = os.stat(full)
+                    year = datetime.datetime.fromtimestamp(st.st_mtime).year
+                except (OSError, OverflowError, ValueError):  # tarikh rosak pada sesetengah fail lama
                     continue
-                if st.st_size < MIN_SIZE:
+                if st.st_size < MIN_SIZE[kind] or (before and year >= before):
                     continue
-                f = folders.setdefault(dirpath, {"count": 0, "iphone": 0, "size": 0,
-                                                 "first": st.st_mtime, "last": st.st_mtime})
+                writer.writerow([fmt_date(st.st_mtime), kind, round(st.st_size / 1024), name, dirpath])
+                years.setdefault(year, dict.fromkeys(wanted, 0))[kind] += 1
+                f = folders.setdefault(dirpath, {"count": 0, "size": 0,
+                                                 "first": st.st_mtime, "last": st.st_mtime,
+                                                 **dict.fromkeys(wanted, 0)})
+                f[kind] += 1
                 f["count"] += 1
                 f["size"] += st.st_size
                 f["first"] = min(f["first"], st.st_mtime)
                 f["last"] = max(f["last"], st.st_mtime)
-                if IPHONE_NAME.match(name) or name.lower().endswith((".heic", ".mov")):
-                    f["iphone"] += 1
-    return backups, folders
+    return backups, folders, years
 
 
 def read_recycle_info(path):
@@ -96,7 +113,7 @@ def read_recycle_info(path):
     return name, deleted
 
 
-def scan_recycle_bin(roots):
+def scan_recycle_bin(roots, wanted):
     found = []
     bins = {Path(root.anchor or root) / "$Recycle.Bin" for root in roots} | {root / "$Recycle.Bin" for root in roots}
     for rb in bins:
@@ -118,10 +135,10 @@ def scan_recycle_bin(roots):
                 if content.is_dir():
                     for dirpath, _, filenames in os.walk(content, onerror=lambda e: None):
                         for name in filenames:
-                            if os.path.splitext(name)[1].lower().lstrip(".") in MEDIA:
+                            if kind_of(name, wanted):
                                 rel = os.path.relpath(os.path.join(dirpath, name), content)
                                 found.append((Path(dirpath) / name, os.path.join(original, rel), deleted))
-                elif content.exists() and os.path.splitext(original)[1].lower().lstrip(".") in MEDIA:
+                elif content.exists() and kind_of(original, wanted):
                     found.append((content, original, deleted))
     return found
 
@@ -143,15 +160,27 @@ def copy_recycled(items, dest):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Cari backup iPhone, gambar & video dalam PC.")
+    ap = argparse.ArgumentParser(description="Cari gambar, video & dokumen lama dalam PC.")
     ap.add_argument("--folder", help="Scan folder/drive ini sahaja (default: semua drive)")
-    ap.add_argument("--salin", metavar="FOLDER", help="Salin gambar & video dari Recycle Bin ke folder ini")
-    ap.add_argument("--laporan", default="laporan_gambar.txt", help="Fail laporan penuh")
+    ap.add_argument("--jenis", default=",".join(KINDS), help=f"Dipisah koma: {','.join(KINDS)} (default: semua)")
+    ap.add_argument("--sebelum", type=int, metavar="TAHUN", help="Hanya fail bertarikh sebelum tahun ini")
+    ap.add_argument("--salin", metavar="FOLDER", help="Salin fail dari Recycle Bin ke folder ini")
+    ap.add_argument("--laporan", default="laporan_gambar.txt", help="Fail laporan ringkas")
+    ap.add_argument("--csv", default="senarai_fail.csv", help="Senarai setiap fail (untuk Excel)")
     args = ap.parse_args()
 
+    wanted = [k.strip().lower() for k in args.jenis.split(",") if k.strip()]
+    unknown = set(wanted) - set(KINDS)
+    if unknown:
+        ap.error(f"Jenis tak dikenali: {', '.join(sorted(unknown))}. Pilihan: {', '.join(KINDS)}")
+
     roots = [Path(args.folder)] if args.folder else drives()
-    backups, folders = scan(roots)
-    recycled = scan_recycle_bin(roots)
+    # utf-8-sig supaya Excel baca nama fail Melayu/Arab/Cina dengan betul
+    with open(args.csv, "w", newline="", encoding="utf-8-sig") as fcsv:
+        writer = csv.writer(fcsv)
+        writer.writerow(["Tarikh", "Jenis", "Saiz (KB)", "Nama fail", "Folder"])
+        backups, folders, years = scan(roots, wanted, args.sebelum, writer)
+    recycled = scan_recycle_bin(roots, wanted)
 
     lines = []
 
@@ -168,22 +197,30 @@ def main():
     else:
         out("  Tiada backup iPhone dalam PC ini.")
 
-    out("\n=== 2. GAMBAR & VIDEO DALAM RECYCLE BIN ===")
+    out("\n=== 2. DALAM RECYCLE BIN ===")
     if recycled:
         for _, original, deleted in sorted(recycled, key=lambda r: r[2]):
             out(f"  dipadam {fmt_date(deleted)}  {original}")
         out(f"  Jumlah: {len(recycled)} fail. Untuk salin keluar:  py cari_gambar_pc.py --salin D:\\Pulih")
     else:
-        out("  Tiada gambar/video dalam Recycle Bin.")
+        out("  Tiada fail berkaitan dalam Recycle Bin.")
 
-    out("\n=== 3. FOLDER YANG ADA GAMBAR & VIDEO ===")
+    out("\n=== 3. JUMLAH FAIL MENGIKUT TAHUN ===")
+    if years:
+        out("  Tahun " + "".join(f"{k.capitalize():>9}" for k in wanted))
+        for year in sorted(years):
+            out(f"  {year} " + "".join(f"{years[year][k]:>9}" for k in wanted))
+    else:
+        out("  Tiada fail dijumpai.")
+
+    out("\n=== 4. FOLDER (paling lama dahulu) ===")
     if folders:
-        ranked = sorted(folders.items(), key=lambda kv: (kv[1]["iphone"], kv[1]["count"]), reverse=True)
+        ranked = sorted(folders.items(), key=lambda kv: kv[1]["first"])
         total = sum(f["count"] for f in folders.values())
-        out(f"  {total} gambar/video dalam {len(folders)} folder. Folder paling mungkin dari iPhone dahulu:")
-        out(f"  {'iPhone':>6} {'Semua':>6} {'Saiz':>9}  {'Tarikh':23}  Folder")
+        out(f"  {total} fail dalam {len(folders)} folder.")
+        out("  " + "".join(f"{k.capitalize():>8}" for k in wanted) + f" {'Saiz':>9}  {'Tarikh':23}  Folder")
         for i, (path, f) in enumerate(ranked):
-            row = (f"  {f['iphone']:>6} {f['count']:>6} {fmt_size(f['size']):>9}  "
+            row = ("  " + "".join(f"{f[k]:>8}" for k in wanted) + f" {fmt_size(f['size']):>9}  "
                    f"{fmt_date(f['first'])} - {fmt_date(f['last'])}  {path}")
             if i < 30:
                 print(row)
@@ -191,10 +228,11 @@ def main():
         if len(ranked) > 30:
             print(f"  ... dan {len(ranked) - 30} folder lagi (lihat laporan)")
     else:
-        out("  Tiada gambar/video dijumpai.")
+        out("  Tiada fail dijumpai.")
 
     Path(args.laporan).write_text("\n".join(lines) + "\n", encoding="utf-8")
-    print(f"\nLaporan penuh: {Path(args.laporan).resolve()}")
+    print(f"\nLaporan ringkas: {Path(args.laporan).resolve()}")
+    print(f"Senarai setiap fail (buka dengan Excel, boleh susun ikut tarikh): {Path(args.csv).resolve()}")
 
     if args.salin and recycled:
         dest, copied = copy_recycled(recycled, args.salin)

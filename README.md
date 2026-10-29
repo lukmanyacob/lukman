@@ -1,4 +1,4 @@
-# iPhone Backup Extractor
+# Cari & Pulih Fail Lama (iPhone & PC)
 
 Tool ini mengeluarkan **gambar, video dan fail lama** dari backup iPhone yang tersimpan dalam
 komputer (iTunes, Finder atau app Apple Devices), **tanpa perlu restore atau erase iPhone**.
@@ -90,24 +90,35 @@ Kalau backup ada di tempat lain (contohnya hard disk luar), guna `--backup "E:\f
 **Mac:** kalau keluar mesej tiada backup walaupun ada, beri Terminal kebenaran
 **Full Disk Access** di System Settings → Privacy & Security → Full Disk Access.
 
-## Cari gambar di seluruh PC
+## Cari fail, gambar & video lama di seluruh PC
 
-Kalau tool di atas cakap "Tiada backup iPhone dijumpai", guna `cari_gambar_pc.py`. Ia scan
-**semua drive** (termasuk hard disk luar yang dicucuk) untuk cari:
+`cari_gambar_pc.py` scan **semua drive** (termasuk hard disk luar yang dicucuk) dan tunjuk:
 
-1. **Backup iPhone** di tempat lain selain lokasi biasa iTunes
-2. **Gambar & video dalam Recycle Bin**, dengan nama asal dan tarikh dipadam
-3. **Semua folder yang ada gambar & video**, disusun dengan folder paling mungkin dari iPhone
-   (HEIC, MOV, `IMG_1234`) di atas, berserta julat tarikh
+1. **Backup iPhone** di mana-mana drive
+2. **Gambar, video & dokumen dalam Recycle Bin**, dengan nama asal dan tarikh dipadam
+3. **Jumlah fail mengikut tahun**, supaya kau nampak tahun mana yang ada fail
+4. **Senarai folder, yang paling lama dahulu**, termasuk `Windows.old` (fail dari Windows
+   sebelum upgrade/reset)
+
+Setiap fail yang dijumpai juga disenaraikan dalam **`senarai_fail.csv`**. Buka dengan Excel,
+kemudian susun ikut tarikh atau cari nama fail.
+
+Jenis fail: **gambar** (jpg, png, heic...), **video** (mp4, mov...), **dokumen** (pdf, Word, Excel, PowerPoint).
 
 ```bash
-py cari_gambar_pc.py                      # scan semua drive (mungkin ambil beberapa minit)
-py cari_gambar_pc.py --folder D:\         # scan satu drive/folder sahaja
-py cari_gambar_pc.py --salin D:\Pulih     # salin gambar dari Recycle Bin ke D:\Pulih
+py cari_gambar_pc.py                        # scan semua drive (mungkin ambil beberapa minit)
+py cari_gambar_pc.py --sebelum 2022         # hanya fail sebelum 2022
+py cari_gambar_pc.py --jenis gambar,video   # gambar & video sahaja
+py cari_gambar_pc.py --folder D:\           # scan satu drive/folder sahaja
+py cari_gambar_pc.py --salin C:\Pulih       # salin fail dari Recycle Bin ke C:\Pulih
 ```
 
-Hasil penuh disimpan dalam `laporan_gambar.txt`. Tool ni hanya membaca. Tiada fail yang
-dipadam atau dialihkan, dan `--salin` hanya membuat salinan.
+Tool ni hanya membaca. Tiada fail yang dipadam atau dialihkan, dan `--salin` hanya membuat salinan.
+
+**Fail yang dah dikosongkan dari Recycle Bin** tak akan dijumpai oleh tool ni. Untuk kes tu, cuba
+**Windows File Recovery** (percuma dari Microsoft Store) atau **PhotoRec**. Peluangnya lebih baik pada
+hard disk biasa (HDD) berbanding SSD. Elakkan install atau simpan banyak fail baru dalam drive
+tersebut sebelum cuba, sebab data lama boleh ditulis ganti.
 
 ## Kenapa Camera Roll kosong?
 
