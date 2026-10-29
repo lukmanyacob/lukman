@@ -32,9 +32,23 @@ Tarikh asal fail dikekalkan, jadi kau boleh susun ikut tarikh.
 - **Mac**: buka Terminal dan taip `python3`. Kalau belum ada, Mac akan tawarkan untuk install.
 
 ### 2. Muat turun tool ini
-Muat turun `iphone_backup_extract.py` dari repo ini (butang **Code → Download ZIP**, kemudian extract).
+Muat turun repo ini (butang **Code → Download ZIP**), kemudian **extract** ZIP tu dulu.
+Jangan jalankan terus dari dalam ZIP.
 
-### 3. Jalankan
+### 3. Jalankan (cara senang: double-click)
+- **Windows**: double-click **`Jalankan-Windows.bat`**. Kalau keluar amaran "Windows protected
+  your PC", tekan **More info → Run anyway**.
+- **Mac**: klik kanan **`Jalankan-Mac.command`** → **Open** → **Open**. Klik kanan diperlukan
+  hanya kali pertama sebab Mac sekat fail dari internet.
+
+Tetingkap hitam akan terbuka dan tunjuk backup yang dijumpai. Kalau ada lebih dari satu, taip
+nombor backup dan tekan Enter. Gambar akan disimpan dalam folder `iPhone_Recovered` di sebelah fail tu.
+
+> `iphone_backup_extract.py` ialah skrip, bukan app. Kalau double-click fail `.py` tu terus,
+> tetingkap mungkin tertutup serta-merta atau fail terbuka dalam Notepad. Guna fail `Jalankan-...` di atas.
+> Tool ni perlu dijalankan di **komputer**, bukan di iPhone.
+
+### Cara manual (Command Prompt / Terminal)
 Buka **Command Prompt** (Windows) atau **Terminal** (Mac) dalam folder tersebut, kemudian:
 
 ```bash
