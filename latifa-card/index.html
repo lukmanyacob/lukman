@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Latifa El Amrani</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Marcellus&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy-900: #0a1328;
+    --navy-800: #0f1c3a;
+    --navy-700: #16264b;
+    --gold-300: #f1d993;
+    --gold-400: #e2c06f;
+    --gold-500: #c9a24a;
+    --gold-600: #a07c2e;
+    --cream: #f4ead2;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #05080f; }
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Fixed 1920x1080 canvas, scaled to fit the window */
+  .stage {
+    width: 100vw;
+    aspect-ratio: 16 / 9;
+    max-height: 100vh;
+    max-width: calc(100vh * 16 / 9);
+    container-type: inline-size;
+  }
+  .card {
+    width: 1920px;
+    height: 1080px;
+    transform-origin: top left;
+    transform: scale(calc(100cqw / 1920px));
+    display: grid;
+    grid-template-columns: 1040px 880px;
+    overflow: hidden;
+    background: var(--navy-900);
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-variant-numeric: lining-nums;
+  }
+  /* cqw/px division isn't supported everywhere; JS below sets the scale as a fallback */
+
+  /* ---------- Portrait ---------- */
+  .portrait {
+    position: relative;
+    overflow: hidden;
+  }
+  .portrait svg, .portrait img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 30%;
+    display: block;
+  }
+  .portrait::after {
+    /* soft edge where the photo meets the panel */
+    content: "";
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: 140px;
+    background: linear-gradient(90deg, rgba(10,19,40,0) 0%, rgba(10,19,40,.85) 100%);
+    pointer-events: none;
+  }
+
+  /* ---------- Info panel ---------- */
+  .panel {
+    position: relative;
+    padding: 92px 96px 80px 72px;
+    background:
+      radial-gradient(120% 80% at 100% 0%, rgba(201,162,74,.10) 0%, rgba(201,162,74,0) 55%),
+      linear-gradient(180deg, var(--navy-800) 0%, var(--navy-900) 100%);
+    color: var(--gold-400);
+    display: flex;
+    flex-direction: column;
+  }
+  .panel::before {
+    /* thin double gold frame */
+    content: "";
+    position: absolute;
+    inset: 36px 40px 36px 24px;
+    border: 1px solid rgba(201,162,74,.45);
+    outline: 1px solid rgba(201,162,74,.18);
+    outline-offset: 7px;
+    pointer-events: none;
+  }
+  .eyebrow {
+    font-family: "Marcellus", Georgia, serif;
+    font-size: 22px;
+    letter-spacing: .42em;
+    text-transform: uppercase;
+    color: var(--gold-500);
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .eyebrow svg { flex: none; }
+  .name {
+    margin-top: 26px;
+    font-size: 92px;
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: .005em;
+    background: linear-gradient(180deg, var(--gold-300) 0%, var(--gold-400) 45%, var(--gold-600) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .tagline {
+    margin-top: 16px;
+    font-size: 30px;
+    font-style: italic;
+    font-weight: 500;
+    color: rgba(244,234,210,.72);
+  }
+  .rule {
+    margin: 38px 0 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .rule span {
+    height: 1px;
+    flex: 1;
+    background: linear-gradient(90deg, rgba(201,162,74,0), var(--gold-500), rgba(201,162,74,0));
+  }
+
+  dl {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+  }
+  dt, dd {
+    padding: 19px 0 17px;
+    border-bottom: 1px solid rgba(201,162,74,.20);
+  }
+  dt {
+    font-family: "Marcellus", Georgia, serif;
+    font-size: 21px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--gold-500);
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+  }
+  dd {
+    font-size: 38px;
+    font-weight: 600;
+    line-height: 1.05;
+    color: var(--cream);
+    display: flex;
+    align-items: center;
+  }
+  dd .unit { color: var(--gold-400); font-weight: 500; margin-left: 8px; font-size: 30px; }
+  dd em { font-style: italic; color: var(--gold-300); font-weight: 500; }
+
+  .footer {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: "Marcellus", Georgia, serif;
+    font-size: 17px;
+    letter-spacing: .32em;
+    text-transform: uppercase;
+    color: rgba(201,162,74,.6);
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+<div class="card" id="card">
+
+  <!-- ===================== PORTRAIT ===================== -->
+  <div class="portrait">
+    <!-- Illustrated fallback portrait. A photo saved as portrait.jpg next to this file is shown on top of it. -->
+    <svg viewBox="0 0 1040 1080" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Portrait of Latifa El Amrani">
+      <defs>
+        <!-- light & surfaces -->
+        <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#d9a868"/>
+          <stop offset=".55" stop-color="#b9824a"/>
+          <stop offset="1" stop-color="#6e4627"/>
+        </linearGradient>
+        <radialGradient id="sun" cx=".82" cy=".12" r=".95">
+          <stop offset="0" stop-color="#ffd58a" stop-opacity=".85"/>
+          <stop offset=".35" stop-color="#ffb760" stop-opacity=".35"/>
+          <stop offset="1" stop-color="#ff9a40" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="archInner" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#3a2a1d"/>
+          <stop offset="1" stop-color="#1d140d"/>
+        </linearGradient>
+        <radialGradient id="vignette" cx=".5" cy=".45" r=".75">
+          <stop offset=".55" stop-color="#000" stop-opacity="0"/>
+          <stop offset="1" stop-color="#0a0604" stop-opacity=".7"/>
+        </radialGradient>
+
+        <!-- zellige: 8-point star tile -->
+        <pattern id="zellige" width="64" height="64" patternUnits="userSpaceOnUse">
+          <rect width="64" height="64" fill="#e9dfc6"/>
+          <polygon points="32,6 39,25 58,32 39,39 32,58 25,39 6,32 25,25" fill="#1f6e66"/>
+          <rect x="22" y="22" width="20" height="20" transform="rotate(45 32 32)" fill="#c38a2b"/>
+          <circle cx="32" cy="32" r="5" fill="#e9dfc6"/>
+          <path d="M0 0 L10 0 L0 10Z M64 0 L54 0 L64 10Z M0 64 L10 64 L0 54Z M64 64 L54 64 L64 54Z" fill="#2a4d8a"/>
+          <rect width="64" height="64" fill="none" stroke="#d6caa9" stroke-width="1.5"/>
+        </pattern>
+        <pattern id="zelligeBand" width="40" height="40" patternUnits="userSpaceOnUse">
+          <rect width="40" height="40" fill="#163f5c"/>
+          <polygon points="20,4 24,16 36,20 24,24 20,36 16,24 4,20 16,16" fill="#e8dcc0"/>
+          <circle cx="20" cy="20" r="3.5" fill="#1f6e66"/>
+        </pattern>
+
+        <!-- skin -->
+        <radialGradient id="skin" cx=".42" cy=".38" r=".7">
+          <stop offset="0" stop-color="#d9a273"/>
+          <stop offset=".6" stop-color="#bf8558"/>
+          <stop offset="1" stop-color="#8e5c3a"/>
+        </radialGradient>
+        <linearGradient id="skinNeck" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#8f5d3b"/>
+          <stop offset="1" stop-color="#b47b51"/>
+        </linearGradient>
+        <radialGradient id="handSkin" cx=".4" cy=".35" r=".8">
+          <stop offset="0" stop-color="#cf966a"/>
+          <stop offset="1" stop-color="#93603d"/>
+        </radialGradient>
+
+        <!-- fabrics -->
+        <linearGradient id="scarf" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#8d9a4a"/>
+          <stop offset=".45" stop-color="#6b7a35"/>
+          <stop offset="1" stop-color="#3f4a1e"/>
+        </linearGradient>
+        <linearGradient id="scarfSheen" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#d8e19a" stop-opacity="0"/>
+          <stop offset=".5" stop-color="#e3e8a8" stop-opacity=".35"/>
+          <stop offset="1" stop-color="#d8e19a" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="djellaba" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#22325c"/>
+          <stop offset=".5" stop-color="#18254a"/>
+          <stop offset="1" stop-color="#0c142c"/>
+        </linearGradient>
+        <linearGradient id="djellabaLit" x1="1" y1="0" x2="0" y2="0">
+          <stop offset="0" stop-color="#3b4f86" stop-opacity=".55"/>
+          <stop offset=".5" stop-color="#3b4f86" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="hair" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#f3f1ec"/>
+          <stop offset="1" stop-color="#bdb8ae"/>
+        </linearGradient>
+        <radialGradient id="goldBtn" cx=".35" cy=".3" r=".8">
+          <stop offset="0" stop-color="#fff1b8"/>
+          <stop offset=".45" stop-color="#d9ac45"/>
+          <stop offset="1" stop-color="#7c5a17"/>
+        </radialGradient>
+        <linearGradient id="cedar" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#5a3317"/>
+          <stop offset=".45" stop-color="#a8683a"/>
+          <stop offset="1" stop-color="#4a2a12"/>
+        </linearGradient>
+        <linearGradient id="tea" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#d7b54a" stop-opacity=".85"/>
+          <stop offset="1" stop-color="#7c5d12" stop-opacity=".95"/>
+        </linearGradient>
+
+        <filter id="bgBlur" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="7"/></filter>
+        <filter id="midBlur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3.2"/></filter>
+        <filter id="soft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="1.1"/></filter>
+        <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="16"/></filter>
+        <filter id="grain">
+          <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/>
+          <feColorMatrix values="0 0 0 0 .5  0 0 0 0 .4  0 0 0 0 .3  0 0 0 .07 0"/>
+        </filter>
+        <clipPath id="faceClip">
+          <path d="M432,330 C432,250 608,250 608,330 L612,425 C610,500 572,552 520,558 C468,552 430,500 428,425 Z"/>
+        </clipPath>
+      </defs>
+
+      <!-- ===== Background (out of focus) ===== -->
+      <g filter="url(#bgBlur)">
+        <rect width="1040" height="1080" fill="url(#wall)"/>
+        <!-- horseshoe archway -->
+        <path d="M150,1080 L150,470 C150,230 320,90 520,90 C720,90 890,230 890,470 L890,1080 Z" fill="url(#zellige)"/>
+        <path d="M150,1080 L150,470 C150,230 320,90 520,90 C720,90 890,230 890,470 L890,1080 Z" fill="none" stroke="#e8d7ad" stroke-width="18"/>
+        <path d="M205,1080 L205,480 C205,275 350,150 520,150 C690,150 835,275 835,480 L835,1080 Z" fill="url(#zelligeBand)"/>
+        <path d="M245,1080 L245,490 C245,305 370,195 520,195 C670,195 795,305 795,490 L795,1080 Z" fill="url(#archInner)"/>
+        <!-- warm courtyard glow through the arch -->
+        <ellipse cx="640" cy="420" rx="220" ry="260" fill="#f0b768" opacity=".35"/>
+        <!-- carved plaster band -->
+        <rect x="0" y="40" width="1040" height="26" fill="#e3c891" opacity=".7"/>
+      </g>
+
+      <!-- small table + mint tea (mid-focus) -->
+      <g filter="url(#midBlur)">
+        <ellipse cx="905" cy="770" rx="120" ry="22" fill="#6d3f1e"/>
+        <rect x="785" y="768" width="240" height="18" fill="#57301500"/>
+        <path d="M785,770 L1025,770 L1015,792 L795,792 Z" fill="#4b2a12"/>
+        <rect x="895" y="792" width="20" height="300" fill="#3c210d"/>
+        <!-- tea glass -->
+        <path d="M878,690 L932,690 L926,762 L884,762 Z" fill="url(#tea)"/>
+        <path d="M878,690 L932,690 L926,762 L884,762 Z" fill="none" stroke="#f7e7b0" stroke-opacity=".7" stroke-width="2"/>
+        <path d="M880,708 L930,708" stroke="#e5c66a" stroke-width="4" opacity=".7"/>
+        <path d="M888,696 L892,756" stroke="#fff6d8" stroke-width="4" opacity=".55"/>
+        <!-- mint sprig -->
+        <path d="M912,692 C918,676 926,668 936,664" stroke="#3f7a2b" stroke-width="3" fill="none"/>
+        <ellipse cx="922" cy="676" rx="9" ry="5" transform="rotate(-35 922 676)" fill="#4f9a34"/>
+        <ellipse cx="935" cy="664" rx="8" ry="4.5" transform="rotate(-10 935 664)" fill="#5aa83c"/>
+        <ellipse cx="909" cy="682" rx="8" ry="4.5" transform="rotate(30 909 682)" fill="#478f2f"/>
+        <!-- glint -->
+        <circle cx="928" cy="696" r="6" fill="#fff8e0" opacity=".9"/>
+      </g>
+
+      <!-- golden-hour wash -->
+      <rect width="1040" height="1080" fill="url(#sun)"/>
+
+      <!-- ===== Figure ===== -->
+      <!-- ground shadow / body shadow on the arch -->
+      <ellipse cx="560" cy="980" rx="420" ry="160" fill="#0c0705" opacity=".45" filter="url(#shadow)"/>
+
+      <!-- djellaba: broad, heavyset silhouette -->
+      <path d="M520,575
+               C440,580 330,600 250,650
+               C170,700 130,800 110,1080
+               L930,1080
+               C910,800 870,700 790,650
+               C710,600 600,580 520,575 Z" fill="url(#djellaba)"/>
+      <path d="M520,575 C600,580 710,600 790,650 C870,700 910,800 930,1080 L640,1080 C650,900 640,720 600,600 Z" fill="url(#djellabaLit)"/>
+      <!-- fabric folds -->
+      <g fill="none" stroke="#0a1024" stroke-width="5" stroke-linecap="round" opacity=".55">
+        <path d="M300,700 C290,820 300,950 290,1080"/>
+        <path d="M720,690 C740,820 735,960 760,1080"/>
+        <path d="M410,760 C400,880 410,980 400,1080"/>
+        <path d="M640,760 C655,880 648,980 660,1080"/>
+      </g>
+      <g fill="none" stroke="#4a5f97" stroke-width="3" stroke-linecap="round" opacity=".3">
+        <path d="M735,700 C752,820 748,960 772,1080"/>
+        <path d="M652,770 C667,880 660,980 672,1080"/>
+      </g>
+
+      <!-- neck -->
+      <path d="M470,520 L470,600 C490,625 550,625 570,600 L570,520 Z" fill="url(#skinNeck)"/>
+      <path d="M482,575 C500,590 540,590 558,575" stroke="#7a4b2d" stroke-width="2.5" fill="none" opacity=".6"/>
+
+      <!-- V-neck with gold-trimmed placket -->
+      <path d="M455,592 L520,700 L585,592" fill="#0e1631"/>
+      <path d="M452,588 L520,702 L588,588" fill="none" stroke="#c9a24a" stroke-width="6" stroke-linejoin="round"/>
+      <path d="M520,702 L520,1080" stroke="#c9a24a" stroke-width="3" opacity=".75"/>
+      <path d="M512,702 L512,1080 M528,702 L528,1080" stroke="#0a1024" stroke-width="2" opacity=".6"/>
+
+      <!-- gold buttons down the front -->
+      <g>
+        <circle cx="520" cy="730" r="10" fill="url(#goldBtn)"/>
+        <circle cx="520" cy="782" r="10" fill="url(#goldBtn)"/>
+        <circle cx="520" cy="834" r="10" fill="url(#goldBtn)"/>
+        <circle cx="520" cy="886" r="10" fill="url(#goldBtn)"/>
+        <circle cx="520" cy="938" r="10" fill="url(#goldBtn)"/>
+        <circle cx="520" cy="990" r="10" fill="url(#goldBtn)"/>
+        <circle cx="520" cy="1042" r="10" fill="url(#goldBtn)"/>
+      </g>
+
+      <!-- chest pocket with mechanical pencil (her left = viewer's right) -->
+      <g>
+        <rect x="640" y="690" width="7" height="88" rx="2" fill="#b8bcc2" transform="rotate(4 643 734)"/>
+        <rect x="638" y="682" width="11" height="22" rx="2" fill="#2b2f36" transform="rotate(4 643 693)"/>
+        <rect x="641" y="672" width="5" height="12" rx="1" fill="#d8dadf" transform="rotate(4 643 678)"/>
+        <rect x="652" y="690" width="3" height="40" fill="#e3e5e8" transform="rotate(4 653 710)"/>
+        <path d="M600,726 L715,726 L712,800 L604,800 Z" fill="#141f40"/>
+        <path d="M600,726 L715,726" stroke="#c9a24a" stroke-width="3"/>
+        <path d="M604,800 L712,800" stroke="#0a1024" stroke-width="2" opacity=".7"/>
+      </g>
+
+      <!-- headscarf drape behind head, falling to shoulders -->
+      <path d="M404,320
+               C398,232 462,200 520,200
+               C584,200 644,232 636,320
+               L650,470 C660,540 690,580 720,610
+               C650,640 590,625 560,600
+               L480,600
+               C450,625 390,640 320,612
+               C352,580 384,540 392,470 Z" fill="url(#scarf)"/>
+      <path d="M335,612 C370,585 392,545 400,490" stroke="#323b16" stroke-width="5" fill="none" opacity=".6"/>
+      <path d="M705,608 C672,585 650,545 642,490" stroke="#323b16" stroke-width="5" fill="none" opacity=".6"/>
+
+      <!-- silver bun peeking at the back -->
+      <ellipse cx="636" cy="238" rx="44" ry="36" fill="url(#hair)"/>
+      <path d="M606,226 C624,208 652,210 668,232 M610,246 C628,232 652,234 670,250" stroke="#a8a398" stroke-width="2.5" fill="none"/>
+
+      <!-- face -->
+      <path d="M432,330 C432,250 608,250 608,330 L612,425 C610,500 572,552 520,558 C468,552 430,500 428,425 Z" fill="url(#skin)"/>
+      <!-- ears (partly hidden by scarf) -->
+      <ellipse cx="428" cy="408" rx="12" ry="26" fill="#a86e47"/>
+      <ellipse cx="612" cy="408" rx="12" ry="26" fill="#b57a50"/>
+
+      <g clip-path="url(#faceClip)">
+        <!-- warm rim light from the sun side -->
+        <path d="M580,280 C620,340 625,440 590,530 L640,540 L640,270 Z" fill="#ffcf8a" opacity=".35" filter="url(#soft)"/>
+        <!-- shadow side -->
+        <path d="M428,300 C450,380 448,470 475,560 L410,560 L410,300 Z" fill="#5b3820" opacity=".35" filter="url(#soft)"/>
+
+        <!-- silver hairline under the scarf -->
+        <path d="M432,300 C450,262 500,248 520,250 C548,248 592,262 608,300 C590,288 560,280 520,282 C480,280 452,288 432,300 Z" fill="url(#hair)"/>
+        <path d="M450,292 C470,274 500,268 518,272 M525,272 C548,268 575,274 592,292" stroke="#9e998e" stroke-width="2" fill="none"/>
+
+        <!-- forehead lines -->
+        <g stroke="#7d4f31" stroke-width="2" fill="none" stroke-linecap="round" opacity=".55">
+          <path d="M470,318 C495,312 545,312 572,318"/>
+          <path d="M478,330 C500,325 540,325 564,330"/>
+          <path d="M488,342 C505,339 535,339 552,342"/>
+        </g>
+
+        <!-- brows: one arched higher (sardonic) -->
+        <path d="M458,372 C472,360 492,358 506,364" stroke="#cfc8bb" stroke-width="7" fill="none" stroke-linecap="round"/>
+        <path d="M536,360 C552,350 572,350 586,362" stroke="#cfc8bb" stroke-width="7" fill="none" stroke-linecap="round"/>
+
+        <!-- eyes -->
+        <g>
+          <path d="M462,394 C472,384 494,384 504,394 C494,402 472,402 462,394 Z" fill="#f2e9dc"/>
+          <circle cx="483" cy="393" r="7.5" fill="#3a2414"/>
+          <circle cx="483" cy="393" r="3.2" fill="#0d0805"/>
+          <circle cx="486" cy="390" r="2" fill="#fff"/>
+          <path d="M460,393 C472,382 494,382 506,392" stroke="#4a2c18" stroke-width="3" fill="none"/>
+          <path d="M538,392 C548,382 570,382 580,392 C570,400 548,400 538,392 Z" fill="#f2e9dc"/>
+          <circle cx="559" cy="391" r="7.5" fill="#3a2414"/>
+          <circle cx="559" cy="391" r="3.2" fill="#0d0805"/>
+          <circle cx="562" cy="388" r="2" fill="#fff"/>
+          <path d="M536,391 C548,380 570,380 582,390" stroke="#4a2c18" stroke-width="3" fill="none"/>
+          <!-- heavy lids, slightly tired -->
+          <path d="M462,388 C474,378 494,378 504,388" stroke="#8a5735" stroke-width="5" fill="none" opacity=".6"/>
+          <path d="M538,386 C550,376 570,376 580,386" stroke="#8a5735" stroke-width="5" fill="none" opacity=".6"/>
+        </g>
+
+        <!-- under-eye bags & crow's feet -->
+        <g stroke="#6e4329" fill="none" stroke-linecap="round" opacity=".6">
+          <path d="M466,406 C476,414 494,414 502,406" stroke-width="2"/>
+          <path d="M470,414 C480,420 492,420 500,414" stroke-width="1.6"/>
+          <path d="M540,404 C550,412 568,412 576,404" stroke-width="2"/>
+          <path d="M544,412 C554,418 566,418 574,412" stroke-width="1.6"/>
+          <path d="M456,392 L442,386 M456,397 L441,398 M457,402 L444,410" stroke-width="1.8"/>
+          <path d="M586,390 L600,384 M586,395 L601,396 M585,400 L598,408" stroke-width="1.8"/>
+        </g>
+
+        <!-- nose -->
+        <path d="M522,398 C520,430 512,450 506,462 C514,472 532,472 540,464" stroke="#7d4b2c" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <ellipse cx="514" cy="464" rx="6" ry="3.5" fill="#6a3d22" opacity=".6"/>
+        <ellipse cx="536" cy="463" rx="6" ry="3.5" fill="#6a3d22" opacity=".6"/>
+        <path d="M528,410 C530,430 532,445 534,455" stroke="#f0bf8d" stroke-width="3" fill="none" opacity=".5"/>
+
+        <!-- deep nasolabial folds -->
+        <path d="M498,462 C482,480 478,500 484,520" stroke="#6e4329" stroke-width="2.6" fill="none" opacity=".7"/>
+        <path d="M548,460 C566,478 570,498 564,518" stroke="#6e4329" stroke-width="2.6" fill="none" opacity=".7"/>
+
+        <!-- smirk: right corner (viewer's right) raised -->
+        <path d="M494,500 C508,506 526,504 540,498 C548,494 554,488 558,482" stroke="#6b3524" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M498,502 C512,512 534,510 548,500" fill="#9d5b45" opacity=".55"/>
+        <path d="M556,484 C562,486 564,490 563,494" stroke="#6e4329" stroke-width="2" fill="none" opacity=".7"/>
+        <!-- lip & chin lines -->
+        <path d="M506,520 C516,524 530,523 540,518" stroke="#7d4b2c" stroke-width="1.8" fill="none" opacity=".5"/>
+        <path d="M500,540 C512,546 532,546 544,540" stroke="#7d4b2c" stroke-width="1.6" fill="none" opacity=".45"/>
+        <!-- cheek warmth -->
+        <ellipse cx="470" cy="450" rx="28" ry="18" fill="#c9705a" opacity=".18"/>
+        <ellipse cx="575" cy="448" rx="28" ry="18" fill="#c9705a" opacity=".18"/>
+      </g>
+
+      <!-- headscarf front edge framing the face -->
+      <path d="M404,320 C398,232 462,200 520,200 C584,200 644,232 636,320
+               C626,284 600,260 520,256 C440,260 414,284 404,320 Z" fill="url(#scarf)"/>
+      <path d="M416,310 C418,252 466,224 520,224 C578,224 624,252 626,310" fill="none" stroke="url(#scarfSheen)" stroke-width="14"/>
+      <path d="M410,316 C418,390 418,455 430,505" stroke="#4a5622" stroke-width="12" fill="none"/>
+      <path d="M630,316 C622,390 624,455 612,505" stroke="#7d8a3d" stroke-width="12" fill="none"/>
+
+      <!-- thick-framed reading glasses, worn low on the nose -->
+      <g>
+        <rect x="455" y="405" width="58" height="40" rx="13" fill="#e8d7b8" fill-opacity=".12" stroke="#2a1a10" stroke-width="7"/>
+        <rect x="531" y="403" width="58" height="40" rx="13" fill="#e8d7b8" fill-opacity=".12" stroke="#2a1a10" stroke-width="7"/>
+        <path d="M513,420 C518,414 526,414 531,418" stroke="#2a1a10" stroke-width="6" fill="none"/>
+        <path d="M455,416 L430,406" stroke="#2a1a10" stroke-width="6"/>
+        <path d="M589,414 L612,404" stroke="#2a1a10" stroke-width="6"/>
+        <path d="M466,412 L478,412" stroke="#fff" stroke-width="3" opacity=".5" stroke-linecap="round"/>
+        <path d="M542,410 L554,410" stroke="#fff" stroke-width="3" opacity=".5" stroke-linecap="round"/>
+      </g>
+      <!-- thin gold chain looping from the temples around the neck -->
+      <path d="M431,407 C420,470 430,560 470,600 C500,630 540,630 570,600 C610,560 622,470 611,405" fill="none" stroke="#e5c56a" stroke-width="2.2" stroke-dasharray="3 2"/>
+
+      <!-- carved cedar walking cane, held in her right hand (viewer's left) -->
+      <g>
+        <rect x="236" y="790" width="26" height="300" rx="10" fill="url(#cedar)"/>
+        <g stroke="#3a1f0b" stroke-width="3" fill="none" opacity=".8">
+          <path d="M236,850 C244,858 254,858 262,850"/>
+          <path d="M236,880 C244,888 254,888 262,880"/>
+          <path d="M238,915 L260,935 M238,935 L260,915"/>
+          <path d="M236,970 C244,978 254,978 262,970"/>
+          <path d="M238,1005 L260,1025 M238,1025 L260,1005"/>
+        </g>
+        <!-- carved knob -->
+        <ellipse cx="249" cy="780" rx="30" ry="22" fill="url(#cedar)"/>
+        <path d="M225,778 C238,768 260,768 273,778" stroke="#3a1f0b" stroke-width="2.5" fill="none"/>
+        <path d="M232,786 L266,786" stroke="#d29563" stroke-width="2" opacity=".6"/>
+        <!-- sleeve and hand gripping the knob -->
+        <path d="M150,700 C190,690 260,720 300,760 L280,830 C240,820 190,800 140,790 Z" fill="url(#djellaba)"/>
+        <path d="M285,760 C298,790 296,815 282,830" stroke="#c9a24a" stroke-width="4" fill="none"/>
+        <path d="M220,770 C232,752 270,752 286,768 C296,780 294,808 284,820 C268,830 236,828 222,816 C212,806 212,784 220,770 Z" fill="url(#handSkin)"/>
+        <g stroke="#6e4329" stroke-width="2" fill="none" opacity=".65">
+          <path d="M232,790 C246,786 262,786 276,792"/>
+          <path d="M230,803 C246,800 262,800 278,806"/>
+          <path d="M240,766 C244,774 250,778 258,778"/>
+        </g>
+        <!-- gold ring -->
+        <rect x="250" y="786" width="14" height="6" rx="2" fill="url(#goldBtn)"/>
+      </g>
+
+      <!-- final grade -->
+      <rect width="1040" height="1080" fill="url(#vignette)"/>
+      <rect width="1040" height="1080" fill="#ffb35c" opacity=".06"/>
+      <rect width="1040" height="1080" filter="url(#grain)"/>
+    </svg>
+
+    <!-- Drop a photorealistic render (see prompt.md) next to this file as portrait.jpg -->
+    <img src="portrait.jpg" alt="Portrait of Latifa El Amrani" onerror="this.remove()">
+  </div>
+
+  <!-- ===================== INFO PANEL ===================== -->
+  <div class="panel">
+    <div class="eyebrow">
+      <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true">
+        <polygon points="13,1 16.2,9.8 25,13 16.2,16.2 13,25 9.8,16.2 1,13 9.8,9.8" fill="#c9a24a"/>
+        <rect x="8" y="8" width="10" height="10" transform="rotate(45 13 13)" fill="none" stroke="#0f1c3a" stroke-width="1.5"/>
+      </svg>
+      Character Profile
+    </div>
+    <h1 class="name">Latifa El Amrani</h1>
+    <p class="tagline">“I built bridges for forty years. I can certainly cross this one.”</p>
+
+    <div class="rule" aria-hidden="true">
+      <span></span>
+      <svg width="34" height="34" viewBox="0 0 34 34">
+        <rect x="7" y="7" width="20" height="20" fill="none" stroke="#c9a24a" stroke-width="1.6"/>
+        <rect x="7" y="7" width="20" height="20" transform="rotate(45 17 17)" fill="none" stroke="#c9a24a" stroke-width="1.6"/>
+        <circle cx="17" cy="17" r="3" fill="#e2c06f"/>
+      </svg>
+      <span></span>
+    </div>
+
+    <dl>
+      <dt>Name</dt>                <dd>Latifa El Amrani</dd>
+      <dt>Age</dt>                 <dd>82</dd>
+      <dt>Height</dt>              <dd>175<span class="unit">cm</span></dd>
+      <dt>Weight</dt>              <dd>106<span class="unit">kg</span></dd>
+      <dt>Occupation</dt>          <dd>Civil Engineer (Retired)</dd>
+      <dt>Nationality</dt>         <dd>Moroccan</dd>
+      <dt>Relationship Status</dt> <dd><em>Complicated</em></dd>
+    </dl>
+
+    <div class="footer">
+      <span>Casablanca · Fès</span>
+      <span>N° 082 — LEA</span>
+    </div>
+  </div>
+
+</div>
+</div>
+<script>
+  // Scale the fixed 1920x1080 card to the window.
+  (function () {
+    var card = document.getElementById('card');
+    function fit() {
+      var s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+      card.style.transform = 'scale(' + s + ')';
+      card.parentElement.style.width = (1920 * s) + 'px';
+      card.parentElement.style.height = (1080 * s) + 'px';
+      card.parentElement.style.maxWidth = 'none';
+      card.parentElement.style.maxHeight = 'none';
+    }
+    window.addEventListener('resize', fit);
+    fit();
+  })();
+</script>
+</body>
+</html>
